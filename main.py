@@ -68,6 +68,19 @@ def load_config():
 
     print(f"配置文件加载成功: {config_path}")
 
+    # 优先从环境变量读取 platforms 配置（保护隐私，避免提交到 GitHub）
+    platforms_content = os.environ.get("PLATFORMS_CONTENT", "").strip()
+    if platforms_content:
+        try:
+            platforms_data = yaml.safe_load(platforms_content)
+            if isinstance(platforms_data, list):
+                config_data["platforms"] = platforms_data
+                print("从环境变量 PLATFORMS_CONTENT 加载平台配置")
+            else:
+                print("警告: PLATFORMS_CONTENT 格式不正确，使用配置文件中的平台配置")
+        except yaml.YAMLError as e:
+            print(f"警告: 解析 PLATFORMS_CONTENT 失败: {e}，使用配置文件中的平台配置")
+
     # 构建配置
     config = {
         "VERSION_CHECK_URL": config_data["app"]["version_check_url"],
@@ -620,18 +633,33 @@ def save_titles_to_file(results: Dict, id_to_name: Dict, failed_ids: List) -> st
 def load_frequency_words(
     frequency_file: Optional[str] = None,
 ) -> Tuple[List[Dict], List[str]]:
-    """加载频率词配置"""
-    if frequency_file is None:
-        frequency_file = os.environ.get(
-            "FREQUENCY_WORDS_PATH", "config/frequency_words.txt"
-        )
+    """加载频率词配置
+    
+    支持两种方式：
+    1. 优先从环境变量 FREQUENCY_WORDS_CONTENT 读取内容（保护隐私）
+    2. 如果环境变量不存在，从文件读取（向后兼容）
+    """
+    # 优先从环境变量读取（保护隐私，避免提交到 GitHub）
+    frequency_words_content = os.environ.get("FREQUENCY_WORDS_CONTENT", "").strip()
+    if frequency_words_content:
+        content = frequency_words_content
+        print("从环境变量 FREQUENCY_WORDS_CONTENT 加载频率词配置")
+    else:
+        # 如果环境变量不存在，从文件读取
+        if frequency_file is None:
+            frequency_file = os.environ.get(
+                "FREQUENCY_WORDS_PATH", "config/frequency_words.txt"
+            )
 
-    frequency_path = Path(frequency_file)
-    if not frequency_path.exists():
-        raise FileNotFoundError(f"频率词文件 {frequency_file} 不存在")
+        frequency_path = Path(frequency_file)
+        if not frequency_path.exists():
+            raise FileNotFoundError(
+                f"频率词文件 {frequency_file} 不存在，且未设置环境变量 FREQUENCY_WORDS_CONTENT"
+            )
 
-    with open(frequency_path, "r", encoding="utf-8") as f:
-        content = f.read()
+        with open(frequency_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        print(f"从文件 {frequency_file} 加载频率词配置")
 
     word_groups = [group.strip() for group in content.split("\n\n") if group.strip()]
 

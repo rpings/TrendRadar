@@ -28,6 +28,35 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Prepare frequency words configuration
+        run: |
+          echo "🔍 检查频率词配置..."
+          
+          # 如果设置了 Secret，优先使用 Secret（保护隐私）
+          if [ -n "${{ secrets.FREQUENCY_WORDS_CONTENT }}" ]; then
+            echo "✅ 检测到 FREQUENCY_WORDS_CONTENT Secret，将使用 Secret 中的配置"
+            echo "从 Secret 读取频率词配置（保护隐私）"
+          # 否则检查文件是否存在
+          elif [ ! -f config/frequency_words.txt ]; then
+            echo "❌ 错误: config/frequency_words.txt 文件不存在，且未设置 FREQUENCY_WORDS_CONTENT Secret"
+            echo "请参考项目文档创建频率词配置文件或设置 GitHub Secret"
+            exit 1
+          else
+            echo "✅ 使用文件 config/frequency_words.txt"
+          fi
+
+      - name: Prepare platforms configuration
+        run: |
+          echo "🔍 检查平台配置..."
+          
+          # 如果设置了 Secret，优先使用 Secret（保护隐私）
+          if [ -n "${{ secrets.PLATFORMS_CONTENT }}" ]; then
+            echo "✅ 检测到 PLATFORMS_CONTENT Secret，将使用 Secret 中的配置"
+            echo "从 Secret 读取平台配置（保护隐私）"
+          else
+            echo "✅ 使用配置文件 config/config.yaml 中的平台配置"
+          fi
+
       - name: Verify required files
         run: |
           echo "🔍 检查必需的配置文件..."
@@ -35,12 +64,6 @@ jobs:
           if [ ! -f config/config.yaml ]; then
             echo "❌ 错误: config/config.yaml 文件不存在"
             echo "请参考项目文档创建配置文件"
-            exit 1
-          fi
-
-          if [ ! -f config/frequency_words.txt ]; then
-            echo "❌ 错误: config/frequency_words.txt 文件不存在"
-            echo "请参考项目文档创建频率词配置文件"
             exit 1
           fi
 
@@ -63,6 +86,8 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           NTFY_SERVER_URL: ${{ secrets.NTFY_SERVER_URL }}
           NTFY_TOKEN: ${{ secrets.NTFY_TOKEN }}
+          FREQUENCY_WORDS_CONTENT: ${{ secrets.FREQUENCY_WORDS_CONTENT }}
+          PLATFORMS_CONTENT: ${{ secrets.PLATFORMS_CONTENT }}
           GITHUB_ACTIONS: true
         run: python main.py
 
