@@ -1312,6 +1312,48 @@ OPPO
 +市场
 ```
 
+#### 🔒 隐私保护：使用 GitHub Actions Secret
+
+避免将个人配置提交到 GitHub 暴露隐私：
+
+**1. 关键词配置（frequency_words.txt）**
+
+1. 进入仓库 Settings → Secrets and variables → Actions
+2. 创建 Secret：Name 为 `FREQUENCY_WORDS_CONTENT`，Value 为 `frequency_words.txt` 的完整内容（保持换行）
+3. 系统优先使用 Secret，不存在时回退到文件读取
+
+**2. 平台配置（platforms）**
+
+1. 进入仓库 Settings → Secrets and variables → Actions
+2. 创建 Secret：Name 为 `PLATFORMS_CONTENT`，Value 为 YAML 格式的平台列表（从 `config.yaml` 中复制 `platforms` 部分）
+3. 系统优先使用 Secret，不存在时回退到配置文件读取
+
+**填写示例**（PLATFORMS_CONTENT Secret Value）：
+```yaml
+- id: "zhihu"
+  name: "知乎"
+- id: "weibo"
+  name: "微博"
+- id: "v2ex"
+  name: "V2EX"
+```
+
+**本地测试**：
+```bash
+# 测试关键词配置
+export FREQUENCY_WORDS_CONTENT="华为
+鸿蒙
+任正非"
+
+# 测试平台配置
+export PLATFORMS_CONTENT="- id: \"zhihu\"
+  name: \"知乎\"
+- id: \"weibo\"
+  name: \"微博\""
+
+python main.py
+```
+
 </details>
 
 ### 3. 推送模式详解

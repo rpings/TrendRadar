@@ -1263,6 +1263,48 @@ sales
 +market
 ```
 
+#### 🔒 Privacy Protection: Using GitHub Actions Secret
+
+Avoid exposing personal configurations to GitHub:
+
+**1. Keyword Configuration (frequency_words.txt)**
+
+1. Go to repository Settings → Secrets and variables → Actions
+2. Create Secret: Name is `FREQUENCY_WORDS_CONTENT`, Value is the complete content of `frequency_words.txt` (preserve line breaks)
+3. System prioritizes Secret, falls back to file reading if not exists
+
+**2. Platform Configuration (platforms)**
+
+1. Go to repository Settings → Secrets and variables → Actions
+2. Create Secret: Name is `PLATFORMS_CONTENT`, Value is YAML format platform list (copy `platforms` section from `config.yaml`)
+3. System prioritizes Secret, falls back to config file reading if not exists
+
+**Example** (PLATFORMS_CONTENT Secret Value):
+```yaml
+- id: "zhihu"
+  name: "Zhihu"
+- id: "weibo"
+  name: "Weibo"
+- id: "v2ex"
+  name: "V2EX"
+```
+
+**Local Testing**:
+```bash
+# Test keyword config
+export FREQUENCY_WORDS_CONTENT="Huawei
+HarmonyOS
+Ren Zhengfei"
+
+# Test platform config
+export PLATFORMS_CONTENT="- id: \"zhihu\"
+  name: \"Zhihu\"
+- id: \"weibo\"
+  name: \"Weibo\""
+
+python main.py
+```
+
 </details>
 
 ### 3. Push Mode Details
